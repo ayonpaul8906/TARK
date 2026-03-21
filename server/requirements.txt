@@ -1,0 +1,14 @@
+flask
+flask-cors
+python-dotenv
+google-generativeai
+openai
+langchain 
+langchain-community 
+langchain-google-genai
+py-algorand-sdk
+pinecone
+pillow
+openai-whisper
+reportlab
+google-search-results

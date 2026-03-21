@@ -1,0 +1,8 @@
+# // server
+/server/.env
+/server/__pycache__/
+/server/venv/
+
+# // client
+/client/node_modules/
+/client/.env
