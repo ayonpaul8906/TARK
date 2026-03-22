@@ -66,9 +66,13 @@ graph TD
     G --> I[📄 PDF Report Generator]
     
     H --> J[Law Enforcement Verifiable Evidence]
-    I --> K[📧 Gmail Complaint Flow]
-    ```
+    I --> K[📧 Gmail/Outlook/Mail Complaint Flow]
+
+style B fill:#2ecc71,stroke:#27ae60,stroke-width:2px,color:#fff
+    style H fill:#000000,stroke:#fff,stroke-width:2px,color:#fff
+    style G fill:#e74c3c,stroke:#c0392b,stroke-width:2px,color:#fff
 ```
+
 🤏 Why SMOLIFY Matters
 =====
 
@@ -151,28 +155,6 @@ HASH: b8d5561187a74eae...
 *   Helps users after scam trauma
 *   Reduces panic & anxiety
 *   Guides next steps safely
-
-⚙️ System Architecture
-======================
-```
-Input (Text/Image/Audio)
-        ↓
-🤏 SMOLIFY (Privacy Layer)
-        ↓
-AI Agents Pipeline
-   ├── Policy Engine
-   ├── Psychology Engine
-   ├── OSINT Engine
-   └── Link Analyzer
-        ↓
-Verdict + Explanation
-        ↓
-🔗 Algorand Blockchain (Hash Storage)
-        ↓
-📄 Report Generator
-        ↓
-📧 Gmail Complaint Flow 
-```
 
 🔥 Key Innovation
 =================
