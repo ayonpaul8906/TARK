@@ -9,6 +9,7 @@ import TerminalPage from './pages/TerminalPage'
 import AboutPage from './pages/AboutPage'
 import { BackgroundAudio } from './components/ui/BackgroundAudio'
 import { ProtectedRoute } from './components/ui/ProtectedRoute'
+import { CyberLoader3D } from './components/3d/CyberLoader3D'
 
 function CustomCursor() {
   const cursorRef = useRef<HTMLDivElement>(null)
@@ -111,14 +112,10 @@ export default function App() {
       <BackgroundAudio />
       {isLoading ? (
         <div className="fixed inset-0 bg-cyber-bg flex flex-col items-center justify-center z-50">
-          <div className="relative mb-8">
-            <div className="w-24 h-24 border-2 border-cyber-cyan/30 rounded-full animate-rotate-ring absolute inset-0" />
-            <div className="w-24 h-24 border-t-2 border-cyber-cyan rounded-full animate-spin" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="font-orbitron text-cyber-cyan text-sm font-bold">T</span>
-            </div>
+          <div className="relative mb-8 w-[240px] h-[240px]">
+            <CyberLoader3D />
           </div>
-          <h1 className="font-orbitron text-cyber-cyan text-3xl font-black tracking-widest mb-2 text-glow-cyan">
+          <h1 className="font-orbitron text-cyber-cyan text-3xl font-black tracking-widest mb-2 text-glow-cyan relative z-10">
             TARK
           </h1>
           <p className="font-mono text-cyber-cyan/60 text-xs tracking-widest mb-8">

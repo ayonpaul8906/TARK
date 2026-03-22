@@ -1,4 +1,5 @@
 // components/dashboard/ResultsPanel.tsx
+import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle, AlertCircle, Shield, Zap, Lock, Globe } from 'lucide-react'
 import { GlassCard } from '../ui/GlassCard'
@@ -6,9 +7,38 @@ import { useAppStore } from '../../store/useAppStore'
 
 interface ResultSection {
   title: string
-  icon: typeof CheckCircle
+  icon: React.ElementType
   content: string
   color: string
+}
+
+const renderInline = (text: string) => {
+  const parts = text.split(/(\*\*.*?\*\*)/g)
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="text-white font-semibold font-inter">{part.slice(2, -2)}</strong>
+    }
+    return <span key={i}>{part}</span>
+  })
+}
+
+const renderMarkdown = (text: string, color: string) => {
+  if (!text) return null
+  return text.split('\n').map((line, i) => {
+    if (!line.trim()) return <div key={i} className="h-2" />
+    
+    const bulletMatch = line.match(/^(\s*)[-*]\s+(.*)/)
+    if (bulletMatch) {
+      const [, indent, content] = bulletMatch
+      return (
+        <div key={i} className="flex items-start gap-2 mt-1.5" style={{ marginLeft: `${indent.length * 6}px` }}>
+          <span className="shrink-0 text-[10px]" style={{ color }}>▸</span>
+          <span className="flex-1">{renderInline(content)}</span>
+        </div>
+      )
+    }
+    return <div key={i} className="mt-1.5">{renderInline(line)}</div>
+  })
 }
 
 export function ResultsPanel() {
@@ -134,12 +164,8 @@ export function ResultsPanel() {
                   {section.title}
                 </h4>
               </div>
-              <div className="text-[10px] font-mono text-slate-400 leading-relaxed whitespace-pre-wrap break-words">
-                {section.content
-                  .split('\n')
-                  .map((line, i) => (
-                    <div key={i}>{line || ' '}</div>
-                  ))}
+              <div className="text-[10px] font-mono text-slate-400 leading-relaxed break-words">
+                {renderMarkdown(section.content, section.color)}
               </div>
             </motion.div>
           )

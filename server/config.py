@@ -8,7 +8,7 @@ GOOGLE_API_KEY  = os.getenv("GOOGLE_API_KEY", "")
 OPENAI_API_KEY  = os.getenv("OPENAI_API_KEY", "")
 
 # Legacy alias kept for any code that still imports MODEL_NAME
-MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
+MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
 # ── Other services ────────────────────────────────────────────────────────────
 SERP_API_KEY    = os.getenv("SERP_API_KEY", "")

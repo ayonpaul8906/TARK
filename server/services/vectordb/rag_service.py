@@ -1,141 +1,216 @@
-from services.vectordb.pinecone_service import upsert_vectors, query_vectors
-# from services.vectordb.pdf_service import load_pdfs, chunk_text
-from services.vectordb.json_service import load_json, chunk_json
-from google.api_core.exceptions import ResourceExhausted
 import uuid
-import time 
+import time
+import re
+
+from services.vectordb.pinecone_service import upsert_vectors, query_vectors
+from services.vectordb.json_service import load_json, chunk_json
 
 import google.generativeai as genai
+from google.api_core.exceptions import ResourceExhausted
+
 from config import MODEL_NAME, GOOGLE_API_KEY
 
+# -----------------------------
+# CONFIG
+# -----------------------------
 genai.configure(api_key=GOOGLE_API_KEY)
 model_llm = genai.GenerativeModel(MODEL_NAME)
 
+EMBED_MODEL = "models/gemini-embedding-001"
+
 # -----------------------------
-# 1. FIXED EMBEDDING FUNCTION
+# HARDCODED POLICY FALLBACK
+# -----------------------------
+POLICY_MAP = {
+    "KYC Scam": {
+        "title": "RBI KYC Guidelines",
+        "category": "Banking Regulation",
+        "violation": "Phishing / Credential Theft"
+    },
+    "OTP Scam": {
+        "title": "CERT-In Advisory",
+        "category": "Cyber Security",
+        "violation": "Sensitive Information Theft"
+    },
+    "Phishing": {
+        "title": "IT Act 2000 & CERT-In Guidelines",
+        "category": "Cyber Law",
+        "violation": "Impersonation & Data Theft"
+    }
+}
+
+
+# -----------------------------
+# EMBEDDINGS
 # -----------------------------
 def get_embeddings_batch(text_list):
-    """Takes a LIST of strings and gets embeddings for all of them in one API call."""
     response = genai.embed_content(
-        model="models/gemini-embedding-001", # Added models/ prefix
-        content=text_list,                   # Accepts a list of strings
-        output_dimensionality=768,           # FOR PINECONE MATCH
+        model=EMBED_MODEL,
+        content=text_list,
+        output_dimensionality=768,
         task_type="RETRIEVAL_DOCUMENT"
     )
     return response["embedding"]
 
 
 # -----------------------------
-# 2. FIXED INGESTION (WITH BATCHING & LOGS)
+# INGESTION (WITH METADATA)
 # -----------------------------
 def ingest_documents():
-    print("1. Loading JSON documents...")
+    print("Loading dataset...")
     texts = load_json()
-    print(f"--> Loaded {len(texts)} records.")
 
+    chunks = chunk_json(texts)  # must return structured dicts
     vectors = []
-
-    # Convert ALL JSON → chunks once
-    all_chunks = chunk_json(texts)
-    print(f"--> Total chunks created: {len(all_chunks)}")
 
     batch_size = 50
 
-    for j in range(0, len(all_chunks), batch_size):
-        chunk_batch = all_chunks[j : j + batch_size]
-        print(f"--> Embedding chunks {j} to {j + len(chunk_batch)}...")
+    for i in range(0, len(chunks), batch_size):
+        batch = chunks[i:i + batch_size]
 
-        success = False
-        retries = 0
-        max_retries = 5
+        try:
+            embeddings = get_embeddings_batch([c["text"] for c in batch])
 
-        while not success and retries < max_retries:
-            try:
-                embeddings_batch = get_embeddings_batch(chunk_batch)
+            for j, emb in enumerate(embeddings):
+                chunk = batch[j]
 
-                for idx, embedding in enumerate(embeddings_batch):
-                    vectors.append({
-                        "id": str(uuid.uuid4()),
-                        "values": embedding,
-                        "metadata": {
-                            "text": chunk_batch[idx]
-                        }
-                    })
+                vectors.append({
+                    "id": str(uuid.uuid4()),
+                    "values": emb,
+                    "metadata": {
+                        "text": chunk["text"],
+                        "source_title": chunk.get("title", "Unknown Source"),
+                        "source_category": chunk.get("category", "General"),
+                        "violation_type": chunk.get("violation", "Unknown")
+                    }
+                })
 
-                success = True
-                print("   ✅ Batch success. Sleeping 20s...")
-                time.sleep(20)
+            time.sleep(20)
 
-            except ResourceExhausted:
-                retries += 1
-                print(f"   ⚠️ Rate limit. Waiting 60s... ({retries})")
-                time.sleep(60)
+        except ResourceExhausted:
+            print("Rate limited, retrying...")
+            time.sleep(60)
 
-            except Exception as e:
-                print(f"   ❌ Error: {e}")
-                break
+    # Upload to Pinecone
+    for i in range(0, len(vectors), 100):
+        upsert_vectors(vectors[i:i + 100])
 
-    # Pinecone upsert
-    print(f"\n3. Upserting {len(vectors)} vectors...")
-
-    pinecone_batch_size = 100
-
-    for i in range(0, len(vectors), pinecone_batch_size):
-        v_batch = vectors[i : i + pinecone_batch_size]
-        print(f"--> Upserting {i} to {i + len(v_batch)}")
-        upsert_vectors(v_batch)
-
-    print("\n✅ Ingestion Complete!")
+    print("Ingestion complete.")
     return len(vectors)
 
 
-
+# -----------------------------
+# RAG QUERY
+# -----------------------------
 def query_rag(text):
-
     query_embedding = genai.embed_content(
-        # Query and document embeddings must come from the same model family.
-        model="models/gemini-embedding-001",
+        model=EMBED_MODEL,
         content=text,
         output_dimensionality=768,
         task_type="RETRIEVAL_QUERY"
     )["embedding"]
 
-    results = query_vectors(query_embedding)
+    results = query_vectors(query_embedding, top_k=5)
 
     context_chunks = []
-    for match in results.get("matches", []):
-        metadata = match.get("metadata", {}) if isinstance(match, dict) else {}
-        text_chunk = metadata.get("text")
-        if text_chunk:
-            context_chunks.append(text_chunk)
+    top_label = None
 
-    context = "\n".join(context_chunks)
+    for i, match in enumerate(results.get("matches", []), start=1):
+        metadata = match.get("metadata", {})
 
-    return context
+        if not top_label:
+            top_label = metadata.get("violation_type")
+
+        context_chunks.append(
+            f"""--- Retrieved passage {i} ---
+Source title: {metadata.get("source_title")}
+Source category: {metadata.get("source_category")}
+Violation type: {metadata.get("violation_type")}
+Relevance score: {round(match.get("score", 0), 3)}
+
+{metadata.get("text")}
+"""
+        )
+
+    return context_chunks, top_label
 
 
+# -----------------------------
+# FALLBACK CONTEXT
+# -----------------------------
+def build_fallback_context(label):
+    policy = POLICY_MAP.get(label or "Phishing")
+
+    return f"""
+--- Fallback Policy ---
+Source title: {policy['title']}
+Source category: {policy['category']}
+Violation type: {policy['violation']}
+"""
+
+
+# -----------------------------
+# MAIN ANALYSIS
+# -----------------------------
 def analyze_policy(text):
 
-    context = query_rag(text)
+    context_chunks, detected_label = query_rag(text)
 
+    # 🔥 HYBRID CONTEXT
+    if context_chunks:
+        context = "\n\n".join(context_chunks)
+
+        # Add fallback ALSO (hybrid boost)
+        context += "\n\n" + build_fallback_context(detected_label)
+
+    else:
+        context = build_fallback_context(detected_label)
+
+    # -----------------------------
+    # PROMPT
+    # -----------------------------
     prompt = f"""
-You are a legal cybersecurity expert.
+You are a cybersecurity policy analyst.
 
-Use the official rules below to evaluate the message.
-
-Rules:
+CONTEXT:
 {context}
 
-Message:
+USER MESSAGE:
 {text}
 
-Return STRICTLY:
+RULES:
+- If scam → MUST include violation
+- Use source titles from context
+- If no strong match → use fallback policy
 
-Verdict: (Valid / Scam)
-Violation: (rule broken or NONE)
-Explanation: (short reasoning)
+FORMAT:
+
+Verdict: Valid OR Scam
+Violation: (must not be NONE if scam)
+Explanation: 2-4 sentences
 """
 
     response = model_llm.generate_content(prompt)
+    output = response.text or ""
 
-    return response.text
+    return fix_output(output)
+
+
+# -----------------------------
+# OUTPUT FIXER
+# -----------------------------
+def fix_output(text):
+    if not text:
+        return text
+
+    verdict_scam = bool(re.search(r"Verdict:\s*Scam", text, re.I))
+    violation_none = bool(re.search(r"Violation:\s*NONE", text, re.I))
+
+    if verdict_scam and violation_none:
+        return re.sub(
+            r"Violation:\s*NONE",
+            "Violation: Phishing / Social Engineering (fallback applied)",
+            text
+        )
+
+    return text

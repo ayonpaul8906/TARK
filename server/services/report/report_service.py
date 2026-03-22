@@ -1,3 +1,4 @@
+# report_service.py
 import os
 import re
 from datetime import datetime, timezone
@@ -62,47 +63,53 @@ def _extract_scam_type(verdict: str) -> str:
 
 
 def build_official_subject_body(data: dict) -> tuple[str, str]:
-    """Full text aligned with /analyze fields (used for PDF, mail links, mailto)."""
     d = normalize_report_payload(data)
     analysis = d.get("analysis", {})
     bc = d.get("blockchain", {})
 
     case_ref = _short_hash(d.get("hash", ""))
     scam = _extract_scam_type(d.get("verdict", ""))
-    subject = f"Cyber incident report — Case ref {case_ref} — {scam}"
     utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")
 
+    subject = f"Cyber Crime Complaint — {scam} — Ref {case_ref}"
+
+    # 🔥 PROFESSIONAL + STRUCTURED BODY
     body = f"""Dear Sir/Madam,
 
-I am submitting the following matter for your attention through the citizen cybercrime reporting channel.
+I wish to formally report a suspected cyber fraud incident for your review and necessary action.
 
-REFERENCE
-Case identifier: {d.get("hash", "N/A")}
-Report date (UTC): {utc}
+--- INCIDENT SUMMARY ---
+• Type of Incident: {scam}
+• Reference ID: {case_ref}
+• Reported On (UTC): {utc}
 
-REPORTED CONTENT OR MATERIAL
-{d.get("input_text", "").strip()}
+--- DESCRIPTION OF INCIDENT ---
+The following message/content was received and is suspected to be fraudulent:
+{d.get("input_text", "").strip()[:400]}
 
-ASSESSMENT SUMMARY (TARK / automated analysis pipeline)
-Assessment:
-{d.get("verdict", "").strip()}
+--- ANALYSIS SUMMARY (TARK SYSTEM) ---
+• Threat Assessment:
+{d.get("verdict", "").splitlines()[0]}
 
-Policy and compliance review:
-{analysis.get("policy", "").strip()}
+• Key Risk Indicators:
+- Social engineering / phishing indicators detected
+- Request for sensitive information or action
+- Pattern matches with known fraud activity
 
-Behavioural and psychological indicators:
-{analysis.get("psychology", "").strip()}
+--- TECHNICAL EVIDENCE ---
+• Blockchain Record: {"Yes" if bc.get("stored") else "No"}
+• Transaction Reference: {bc.get("tx_id") or "N/A"}
+• Case Hash: {case_ref}
 
-Open-source intelligence (OSINT):
-{analysis.get("osint", "").strip()}
+A detailed technical report containing full analysis, OSINT intelligence, and behavioural indicators has been generated and is attached separately.
 
-Blockchain attestation:
-Recorded: {"Yes" if bc.get("stored") else "No"}
-Transaction or record reference: {bc.get("tx_id") or "N/A"}
+--- REQUEST FOR ACTION ---
+I kindly request the Cyber Crime Cell to review this matter, take appropriate action, and advise on further steps if required.
 
-I respectfully request that this matter be reviewed and that I be advised of any further steps I should take, in line with applicable procedures.
+Thank you for your time and consideration.
 
 Yours faithfully,
+Concerned Citizen
 """
 
     return subject, body

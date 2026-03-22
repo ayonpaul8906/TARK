@@ -153,37 +153,52 @@ export default function LandingPage() {
             style={{ y: heroTextY }}
             className="relative z-10 text-center px-6 max-w-5xl mx-auto mt-20"
           >
-            
+            {/* Status Badge */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="inline-flex items-center gap-2 px-3 py-1 mb-8 rounded-full border border-cyber-cyan/30 bg-cyber-cyan/5 text-cyber-cyan text-[10px] font-mono tracking-[0.2em] uppercase"
+            >
+              <div className="w-1.5 h-1.5 rounded-full bg-cyber-cyan animate-pulse" />
+              Terminal V4.2.0 Online
+            </motion.div>
 
+            {/* Massive TARK Header */}
             <motion.h1
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
-              className="font-orbitron font-black text-5xl sm:text-7xl lg:text-8xl leading-none mb-6"
+              className="font-orbitron font-black text-6xl sm:text-8xl lg:text-9xl leading-none mb-4"
             >
-              <span className="block text-white">TARK</span>
-              <span className="block text-2xl sm:text-3xl lg:text-4xl font-light text-slate-400 tracking-widest mt-3">
-                AI CYBER DEFENSE
+              <span className="block text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-slate-500 drop-shadow-[0_0_30px_rgba(255,255,255,0.2)] pb-2">
+                TARK
+              </span>
+              <span className="block text-xl sm:text-3xl lg:text-4xl font-light text-cyber-cyan tracking-[0.4em] sm:tracking-[0.6em] mt-4 text-glow-cyan uppercase">
+                AI Cyber Defense
               </span>
             </motion.h1>
 
-            {/* <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.5 }}
-              className="font-orbitron text-xl sm:text-2xl mb-10 h-10"
-            >
-              <TypingHero />
-            </motion.div> */}
+            {/* Tactical Divider */}
+            <motion.div
+              initial={{ opacity: 0, scaleX: 0 }}
+              animate={{ opacity: 1, scaleX: 1 }}
+              transition={{ duration: 1, delay: 0.5 }}
+              className="h-px w-32 bg-gradient-to-r from-transparent via-cyber-border to-transparent mx-auto mb-8"
+            />
 
+            {/* Paragraph Text */}
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.6 }}
-              className="text-slate-400 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed mb-12"
+              className="text-slate-400 font-orbitron text-sm sm:text-base lg:text-lg max-w-2xl mx-auto leading-relaxed mb-12 font-light"
             >
-              Four specialized AI agents working in concert - SENTINEL, CIPHER, PHANTOM, and NEXUS 
-              to detect, analyze, and neutralize cyber threats before they breach your perimeter.
+              A privacy-first, multi-agent AI system that {' '}
+              <span className="text-cyber-cyan font-mono text-[13px] sm:text-xs tracking-wider">detects</span>,{' '}
+              <span className="text-cyber-purple font-mono text-[13px] sm:text-xs tracking-wider">explains</span>, and {' '}
+              <span className="text-cyber-alert font-mono text-[13px] sm:text-xs tracking-wider">generates</span>
+              verifiable evidence for cyber fraud.
             </motion.p>
 
             <motion.div
@@ -199,36 +214,8 @@ export default function LandingPage() {
                   </NeoBrutalButton>
                 </Link>
               </MagneticButton>
-              <MagneticButton>
-                <Link to="/signup">
-                  <NeoBrutalButton size="lg" variant="secondary">
-                    Sign Up
-                  </NeoBrutalButton>
-                </Link>
-              </MagneticButton>
-              <MagneticButton>
-                <Link to="/login">
-                  <NeoBrutalButton size="lg" variant="ghost">
-                    Login
-                  </NeoBrutalButton>
-                </Link>
-              </MagneticButton>
             </motion.div>
 
-            {/* Trust badges */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1 }}
-              className="flex flex-wrap items-center justify-center gap-6 mt-12 text-[10px] font-mono text-slate-600"
-            >
-              {['SOC 2 TYPE II', 'ISO 27001', 'NIST CSF', 'GDPR COMPLIANT'].map(badge => (
-                <div key={badge} className="flex items-center gap-1.5">
-                  <CheckCircle size={10} className="text-cyber-cyan/50" />
-                  {badge}
-                </div>
-              ))}
-            </motion.div>
           </motion.div>
 
           {/* Scroll indicator */}

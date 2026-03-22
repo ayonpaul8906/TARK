@@ -53,3 +53,4 @@ export function runSmolify(input: string) {
 
   return { sanitizedText: sanitized, mapping }
 }
+

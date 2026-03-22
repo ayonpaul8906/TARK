@@ -131,16 +131,6 @@ export function ThreatPanel() {
         </AnimatePresence>
       </div>
 
-      {/* Shield status */}
-      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-cyber-cyan/5 border border-cyber-cyan/20">
-        <Shield size={14} className="text-cyber-cyan" />
-        <span className="text-[10px] font-orbitron font-semibold text-cyber-cyan">TARK DEFENSE ACTIVE</span>
-        <div className="ml-auto flex gap-0.5">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="w-1 h-3 bg-cyber-cyan/70 rounded-full" style={{ height: `${8 + i * 3}px` }} />
-          ))}
-        </div>
-      </div>
     </GlassCard>
   )
 }

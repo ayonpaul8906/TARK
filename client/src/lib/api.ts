@@ -139,6 +139,11 @@ export interface LinkSafetyResponse {
     url: string
     is_safe: boolean
     flags: string[]
+    virustotal?: {
+      malicious: number
+      suspicious: number
+      harmless: number
+    }
   }[]
 }
 

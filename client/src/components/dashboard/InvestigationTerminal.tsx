@@ -20,7 +20,7 @@ const LOG_PREFIXES: Record<LogEntry['level'], string> = {
   WARN: '[WARN]',
   ERROR: '[ERR!]',
   SUCCESS: '[OK!!]',
-  AGENT: '[AGNT]',
+  AGENT: '[AGENT]',
 }
 
 function LogLine({ log }: { log: LogEntry }) {
@@ -51,7 +51,7 @@ function TypingIndicator() {
   return (
     <div className="flex items-center gap-2 font-mono text-[11px] text-cyber-cyan/60 px-1">
       <span className="text-slate-600">────</span>
-      <span>[AGNT]</span>
+      <span>[AGENT]</span>
       <span>Processing</span>
       <span className="inline-flex gap-1">
         {[...Array(3)].map((_, i) => (
@@ -100,7 +100,6 @@ export function InvestigationTerminal() {
   // ─────────────────────────────────────────────────────────────────────────
   const handleExport = () => {
     if (!analysisResult) {
-      // No analysis yet — export raw terminal log as .log file
       const text = logs
         .map(l => `[${l.timestamp}] ${LOG_PREFIXES[l.level]}${l.agent ? ` [${l.agent}]` : ''} ${l.message}`)
         .join('\n')
@@ -628,13 +627,13 @@ doc.setTextColor(...(analysisResult.blockchainStored ? CYAN : GREY))
           >
             <Copy size={13} />
           </button>
-          <button
+          {/* <button
             onClick={handleExport}
             className="p-1.5 text-slate-500 hover:text-white rounded-lg hover:bg-white/5 transition-colors"
             title="Export logs"
           >
             <Download size={13} />
-          </button>
+          </button> */}
           <button
             onClick={clearLogs}
             className="p-1.5 text-slate-500 hover:text-cyber-alert rounded-lg hover:bg-cyber-alert/5 transition-colors"
@@ -702,7 +701,7 @@ doc.setTextColor(...(analysisResult.blockchainStored ? CYAN : GREY))
                 })}
               </span>
               <span className="shrink-0 font-bold text-cyber-purple select-none">
-                [AGNT]
+                [AGENT]
               </span>
               {streamState.currentAgent && (
                 <span className="text-cyber-purple/80 shrink-0">

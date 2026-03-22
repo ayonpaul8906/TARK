@@ -1,3 +1,5 @@
+# report.py
+
 from flask import Blueprint, request, jsonify, send_file
 from services.report.report_service import generate_pdf, generate_gmail_link
 
@@ -5,7 +7,7 @@ report_bp = Blueprint("report", __name__)
 
 @report_bp.route("/report-generate", methods=["POST"])
 def report_generate():
-    data = request.get_json()
+    data = request.get_json() 
 
     if not data:
         return jsonify({"error": "No data provided"}), 400

@@ -15,8 +15,8 @@ export default {
         },
       },
       fontFamily: {
-        orbitron: ['Orbitron', 'monospace'],
-        inter: ['Inter', 'sans-serif'],
+        orbitron: ['Rajdhani', 'sans-serif'],
+        inter: ['Space Grotesk', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
       animation: {
